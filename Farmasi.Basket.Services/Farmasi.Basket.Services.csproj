@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <Folder Include="CartModule\Configurations\" />
-    <Folder Include="UserModule\" />
   </ItemGroup>
 
 </Project>

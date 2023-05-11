@@ -20,7 +20,7 @@ namespace Farmasi.Basket.API.Controllers
 
 
         [HttpPost("add-product-to-card")]
-        public async Task<IActionResult> AddProductToCart(AddToCartRequestMoel addToCartRequestMoel)
+        public async Task<IActionResult> AddProductToCart(AddToCartRequestModel addToCartRequestMoel)
         {
             var responseModel = await _cartService.AddToCart(addToCartRequestMoel);
             return Ok(responseModel);

@@ -4,10 +4,14 @@ using Farmasi.Basket.Core.Application.Concrete.ExceptionTypes;
 using Farmasi.Basket.Data.Abstraction;
 using Farmasi.Basket.Data.Models;
 using Farmasi.Basket.Services.CartModule.Abstraction;
+using Farmasi.Basket.Services.CartModule.Concrete.Helpers;
+using Farmasi.Basket.Services.CartModule.Concrete.Validators;
 using Farmasi.Basket.Services.CartModule.Models.RequestModels;
 using Farmasi.Basket.Services.CartModule.Models.ResponseModels;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Bson.IO;
 using StackExchange.Redis;
+using System.Collections.Generic;
 
 namespace Farmasi.Basket.Services.CartModule.Concrete
 {
@@ -18,164 +22,100 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
         private readonly IMapper _mapper;
         private readonly IDatabase _redisDb;
 
-        public CartService(ICartRepository cartRepository, IMapper mapper, IProductRepository productRepository)
+        private readonly CartServiceHelper _cartServiceHelper;
+
+        public CartService(ICartRepository cartRepository,IConfiguration configuration, IMapper mapper, IProductRepository productRepository)
         {
             _cartRepository = cartRepository;
             _mapper = mapper;
             _productRepository = productRepository;
 
-            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("redis-13882.c92.us-east-1-3.ec2.cloud.redislabs.com:13882,password=rSqMP2xLTKlhxzfVt9Wj58icKNHbbiXU");
+            string connectionString = configuration["Redis:ConnectionString"].ToString();
+
+            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(connectionString);
 
             _redisDb = redis.GetDatabase();
+
+            _cartServiceHelper = new(_redisDb);
         }
 
-        public async Task<BaseResponse<AddToCartResponseModel>> AddToCart(AddToCartRequestMoel addToCartRequestMoel)
+        public async Task<BaseResponse<AddToCartResponseModel>> AddToCart(AddToCartRequestModel addToCartRequestMoel)
         {
-            var selectedProduct = await _productRepository.GetById(addToCartRequestMoel.ProductId);
+            AddToCartValidator addToCartValidator = new AddToCartValidator();
 
-            if (selectedProduct == null)
+            addToCartRequestMoel.UserValidate();
+
+            var product = await _productRepository.GetById(addToCartRequestMoel.ProductId);
+
+            addToCartValidator.Validate(product);
+
+            string hashKey = Util.GetCartHashKey(addToCartRequestMoel.UserId.ToString());
+
+            bool existingCart = _redisDb.KeyExists(hashKey);
+
+            if (existingCart)
             {
-                throw new BusinessException("product could not found");
+                _cartServiceHelper.IncreaseExistProductCountOnCart(product, hashKey);
             }
-
-            //var userCard = await _cartRepository.GetCartByUserId(addToCartRequestMoel.UserId);
-
-            AddItemToCart(addToCartRequestMoel.UserId.ToString(), selectedProduct);
+            else
+            {
+                _cartServiceHelper.CreateNewProductItem(product, hashKey);
+            }
 
             return BaseResponse<AddToCartResponseModel>.Builder().SetSuccessCode().Build();
         }
 
-        private void AddItemToCart(string userId, Product product)
-        {
-            var hashKey = $"cart:{userId}";
-
-            var existingCart = _redisDb.KeyExists(hashKey);
-
-            if (existingCart)
-            {
-                var serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
-
-                var productOfCardModel = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
-
-                if(productOfCardModel != null)
-                {
-                    var releatedProduct = productOfCardModel.Where(x => x.ProductId == product.Id).FirstOrDefault();
-                    if(releatedProduct != null)
-                    {
-                        releatedProduct.Count++;
-                    }
-                }
-
-                var hashFields = new HashEntry[]
-                {
-                    new HashEntry(nameof(ProductOfCartModel), Newtonsoft.Json.JsonConvert.SerializeObject(productOfCardModel))
-                };
-
-                _redisDb.HashSet(hashKey, hashFields);
-            }
-            else
-            {
-                List<ProductOfCartModel> productsOfCart = new();
-
-                var productOfCartModel = new ProductOfCartModel()
-                {
-                    CategoryName = product.CategoryName,
-                    Count = 1,
-                    Price = product.Price,
-                    Name = product.Name,
-                    ProductId = product.Id
-                };
-
-                productsOfCart.Add(productOfCartModel);
-
-                var hashFields = new HashEntry[]
-                {
-                       new HashEntry(nameof(ProductOfCartModel), Newtonsoft.Json.JsonConvert.SerializeObject(productsOfCart))
-                };
-
-                _redisDb.HashSet(hashKey, hashFields);
-            }
-        }
-
-
         public async Task<BaseResponse<UpdateItemCountOfProductResponsemodel>> UpdateItemCountOfProduct(UpdateItemCountOfProductRequestModel updateItemQuantityRequestModel)
         {
+            UpdateItemCountOfProductValidator updateItemCountOfProductValidator = new UpdateItemCountOfProductValidator();
+
             var selectedProduct = await _productRepository.GetById(updateItemQuantityRequestModel.ProductId);
 
-            if (selectedProduct == null)
-            {
-                throw new BusinessException("product could not found");
-            }
+            updateItemCountOfProductValidator.ThrowIfProductIsNull(selectedProduct);
 
-            var hashKey = $"cart:{updateItemQuantityRequestModel.UserId}";
+            var hashKey = Util.GetCartHashKey(updateItemQuantityRequestModel.UserId.ToString());
 
-            var existingCart = _redisDb.KeyExists(hashKey);
 
-            if (existingCart)
-            {
-                var serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
+            updateItemCountOfProductValidator.ThrowIfUserHasNotCart(_redisDb, hashKey);
 
-                var productOfCardList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
+            _cartServiceHelper.UpdateProductCountOfCart(selectedProduct, hashKey, updateItemQuantityRequestModel.Count);
 
-                var releatedProduct = productOfCardList.Where(x => x.ProductId == selectedProduct.Id).FirstOrDefault();
-
-                releatedProduct.Count = updateItemQuantityRequestModel.Count;
-
-                var hashFields = new HashEntry[]
-                {
-                    new HashEntry(nameof(ProductOfCartModel), Newtonsoft.Json.JsonConvert.SerializeObject(productOfCardList))
-                };
-
-                _redisDb.HashSet(hashKey, hashFields);
-
-                return BaseResponse<UpdateItemCountOfProductResponsemodel>.Builder().SetSuccessCode().Build();
-            }
-            else
-            {
-                throw new BusinessException("User has not a cart yet.");
-            }
+            return BaseResponse<UpdateItemCountOfProductResponsemodel>.Builder().SetSuccessCode().Build();
         }
 
-        public async Task<BaseResponse<RemoveProductFromCartResponseModel>> RemoveProductFromCart (RemoveProductFromCartRequestModel requestModel)
+        public async Task<BaseResponse<RemoveProductFromCartResponseModel>> RemoveProductFromCart(RemoveProductFromCartRequestModel requestModel)
         {
+
+            RemoveProductFromCartValidator removeProductFromCartValidator = new RemoveProductFromCartValidator();
+
             var selectedProduct = await _productRepository.GetById(requestModel.ProductId);
 
-            if (selectedProduct == null)
+            removeProductFromCartValidator.ThrowIfProductIsNull(selectedProduct);
+
+            var hashKey = Util.GetCartHashKey(requestModel.UserId.ToString());
+
+            removeProductFromCartValidator.ThrowIfUserHasNotCart(_redisDb,hashKey);
+
+            var serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
+
+            var productOfCardList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
+
+            var hashFields = new HashEntry[]
             {
-                throw new BusinessException("product could not found");
-            }
-
-            var hashKey = $"cart:{requestModel.UserId}";
-
-            var existingCart = _redisDb.KeyExists(hashKey);
-
-            if (existingCart)
-            {
-                var serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
-
-                var productOfCardList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
-
-                var hashFields = new HashEntry[]
-                {
                     new HashEntry(nameof(ProductOfCartModel), Newtonsoft.Json.JsonConvert.SerializeObject(productOfCardList))
-                };
+            };
 
-                _redisDb.HashSet(hashKey, hashFields);
+            _redisDb.HashSet(hashKey, hashFields);
 
-                return BaseResponse<RemoveProductFromCartResponseModel>.Builder().SetSuccessCode().Build();
-            }
-            else
-            {
-                throw new BusinessException("User has not a cart yet.");
-            }
+            return BaseResponse<RemoveProductFromCartResponseModel>.Builder().SetSuccessCode().Build();
         }
 
         public async Task<BaseResponse<GetCartByUserResponseModel>> GetCartByUser(GetCartByUserRequestModel requestModel)
         {
 
-            // to do : user validation here ! .
+            requestModel.Validate();
 
-            var hashKey = $"cart:{requestModel.UserId}";
+            var hashKey = Util.GetCartHashKey(requestModel.UserId.ToString());
 
             var existingCart = await _redisDb.KeyExistsAsync(hashKey);
 
@@ -187,7 +127,7 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
 
                 return BaseResponse<GetCartByUserResponseModel>.Builder().SetSuccessCode().SetData(new GetCartByUserResponseModel()
                 {
-                     Products = productOfCardList
+                    Products = productOfCardList
                 }).Build();
             }
 

@@ -11,7 +11,7 @@ namespace Farmasi.Basket.Services.CartModule.Abstraction
 {
     public interface ICartService
     {
-        Task<BaseResponse<AddToCartResponseModel>> AddToCart(AddToCartRequestMoel addToCartRequestMoel);
+        Task<BaseResponse<AddToCartResponseModel>> AddToCart(AddToCartRequestModel addToCartRequestMoel);
         Task<BaseResponse<UpdateItemCountOfProductResponsemodel>> UpdateItemCountOfProduct(UpdateItemCountOfProductRequestModel updateItemQuantityRequestModel);
         Task<BaseResponse<RemoveProductFromCartResponseModel>> RemoveProductFromCart(RemoveProductFromCartRequestModel requestModel);
         Task<BaseResponse<GetCartByUserResponseModel>> GetCartByUser(GetCartByUserRequestModel requestModel);
