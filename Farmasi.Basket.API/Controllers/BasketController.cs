@@ -7,15 +7,8 @@ namespace Farmasi.Basket.API.Controllers
 
     public class BasketController 
     {
-        public BasketController()
-        {
-
-        }
-        [HttpGet("exception-test")]
-        public async Task<IActionResult> ExceptionTest()
-        {
-            throw new ValidationException("Hata Var");
-        }
+    
+    
 
     }
 }
