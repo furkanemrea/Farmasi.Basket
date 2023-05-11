@@ -1,0 +1,64 @@
+name: AWS Elastic Beanstalk Deployment
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  AWS_REGION: eu-central-1
+  S3_BUCKET: publish-folders
+  APPLICATION_NAME: FarmasiBasketAPI
+  ENVIRONMENT_NAME: FarmasiBasketAPI-dev
+  PUBLISH_FOLDER: ./bin/Release/net7.0/publish
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup .NET 7.0
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.x
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Install Zip
+      run: sudo apt-get install zip
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+
+    - name: Publish to S3
+      run: |
+        
+        dotnet publish -c Release -o ${{env.PUBLISH_FOLDER}}
+        cd ${{env.PUBLISH_FOLDER}}
+        zip -r package.zip *
+        aws s3 cp --region eu-central-1 package.zip s3://${{env.S3_BUCKET}}/${{env.APPLICATION_NAME}}/${{env.ENVIRONMENT_NAME}}/${{github.sha}}/
+
+    - name: Create new application version
+      run: |
+        aws elasticbeanstalk --region eu-central-1 create-application-version --application-name ${{env.APPLICATION_NAME}} --version-label ${{github.sha}} --source-bundle S3Bucket="publish-folders",S3Key="${{env.APPLICATION_NAME}}/${{env.ENVIRONMENT_NAME}}/${{github.sha}}/package.zip" --auto-create-application
+
+    - name: Deploy to Elastic Beanstalk
+      uses: einaregilsson/beanstalk-deploy@v15
+      with:
+        aws_access_key: ${{secrets.AWS_ACCESS_KEY_ID}}
+        aws_secret_key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+        application_name: ${{env.APPLICATION_NAME}}
+        environment_name: ${{env.ENVIRONMENT_NAME}}
+        version_label: ${{github.sha}}
+        region: ${{env.AWS_REGION}}
+    - name: Deploy Completed Notification To Slack
+      run: |
+        curl -X POST -H 'Content-type: application/json' --data '{"text":" Production environment updated "}' https://hooks.slack.com/services/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
+ 
+  
