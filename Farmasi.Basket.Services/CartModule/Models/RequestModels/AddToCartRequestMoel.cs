@@ -1,5 +1,6 @@
 ﻿using Farmasi.Basket.Common.Concrete;
 using Farmasi.Basket.Core.Application.Concrete.ExceptionTypes;
+using Farmasi.Basket.Core.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Farmasi.Basket.Services.CartModule.Models.RequestModels
 {
-    public class AddToCartRequestModel
+    public class AddToCartRequestModel: IBaseRequestModel
     {
         public Guid UserId { get; set; }
         public Guid ProductId { get; set; }

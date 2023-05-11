@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Farmasi.Basket.Core", "Farm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Farmasi.Basket.Data", "Farmasi.Basket.Data\Farmasi.Basket.Data.csproj", "{1B1E1C11-BDEC-464C-82BA-5815DC5EF168}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Farmasi.Basket.Redis", "Farmasi.Basket.Redis\Farmasi.Basket.Redis.csproj", "{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Farmasi.Basket.Email.Sender", "Farmasi.Basket.Email.Sender\Farmasi.Basket.Email.Sender.csproj", "{3E54783E-FC51-4ED3-AC21-9063A1DD5749}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,10 @@ Global
 		{1B1E1C11-BDEC-464C-82BA-5815DC5EF168}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B1E1C11-BDEC-464C-82BA-5815DC5EF168}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B1E1C11-BDEC-464C-82BA-5815DC5EF168}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E54783E-FC51-4ED3-AC21-9063A1DD5749}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E54783E-FC51-4ED3-AC21-9063A1DD5749}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E54783E-FC51-4ED3-AC21-9063A1DD5749}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E54783E-FC51-4ED3-AC21-9063A1DD5749}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

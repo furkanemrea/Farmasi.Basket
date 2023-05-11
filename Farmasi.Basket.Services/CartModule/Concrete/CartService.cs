@@ -69,11 +69,11 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
         {
             UpdateItemCountOfProductValidator updateItemCountOfProductValidator = new UpdateItemCountOfProductValidator();
 
-            var selectedProduct = await _productRepository.GetById(updateItemQuantityRequestModel.ProductId);
+            Product selectedProduct = await _productRepository.GetById(updateItemQuantityRequestModel.ProductId);
 
             updateItemCountOfProductValidator.ThrowIfProductIsNull(selectedProduct);
 
-            var hashKey = Util.GetCartHashKey(updateItemQuantityRequestModel.UserId.ToString());
+            string hashKey = Util.GetCartHashKey(updateItemQuantityRequestModel.UserId.ToString());
 
 
             updateItemCountOfProductValidator.ThrowIfUserHasNotCart(_redisDb, hashKey);
@@ -88,17 +88,17 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
 
             RemoveProductFromCartValidator removeProductFromCartValidator = new RemoveProductFromCartValidator();
 
-            var selectedProduct = await _productRepository.GetById(requestModel.ProductId);
+            Product selectedProduct = await _productRepository.GetById(requestModel.ProductId);
 
             removeProductFromCartValidator.ThrowIfProductIsNull(selectedProduct);
 
-            var hashKey = Util.GetCartHashKey(requestModel.UserId.ToString());
+            string hashKey = Util.GetCartHashKey(requestModel.UserId.ToString());
 
             removeProductFromCartValidator.ThrowIfUserHasNotCart(_redisDb,hashKey);
 
-            var serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
+            RedisValue serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
 
-            var productOfCardList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
+            List<ProductOfCartModel>? productOfCardList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
 
             var hashFields = new HashEntry[]
             {
@@ -115,15 +115,15 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
 
             requestModel.Validate();
 
-            var hashKey = Util.GetCartHashKey(requestModel.UserId.ToString());
+            string hashKey = Util.GetCartHashKey(requestModel.UserId.ToString());
 
-            var existingCart = await _redisDb.KeyExistsAsync(hashKey);
+            bool existingCart = await _redisDb.KeyExistsAsync(hashKey);
 
             if (existingCart)
             {
-                var serializedObject = await _redisDb.HashGetAsync(hashKey, nameof(ProductOfCartModel));
+                RedisValue serializedObject = await _redisDb.HashGetAsync(hashKey, nameof(ProductOfCartModel));
 
-                var productOfCardList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
+                List<ProductOfCartModel>? productOfCardList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
 
                 return BaseResponse<GetCartByUserResponseModel>.Builder().SetSuccessCode().SetData(new GetCartByUserResponseModel()
                 {

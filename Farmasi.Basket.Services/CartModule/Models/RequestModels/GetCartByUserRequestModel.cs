@@ -1,15 +1,10 @@
 ﻿using Farmasi.Basket.Common.Concrete;
 using Farmasi.Basket.Core.Application.Concrete.ExceptionTypes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
+using Farmasi.Basket.Core.Models.Base;
 
 namespace Farmasi.Basket.Services.CartModule.Models.RequestModels
 {
-    public class GetCartByUserRequestModel
+    public class GetCartByUserRequestModel: IBaseRequestModel
     {
         public Guid UserId { get; set; }
 
