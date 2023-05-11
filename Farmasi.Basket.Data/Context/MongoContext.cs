@@ -1,5 +1,7 @@
 ﻿using Farmasi.Basket.Data.Abstraction;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Configuration;
 
 namespace Farmasi.Basket.Data.Context
 {
@@ -9,10 +11,11 @@ namespace Farmasi.Basket.Data.Context
         public IClientSessionHandle Session { get; set; }
         public MongoClient MongoClient { get; set; }
         private readonly List<Func<Task>> _commands;
-
-        public MongoContext()
+        private string _connectionString = string.Empty;
+        public MongoContext(IConfiguration configuration)
         {
             _commands = new List<Func<Task>>();
+            _connectionString = configuration["Mongo:ConnectionString"].ToString();
         }
 
 
@@ -23,8 +26,7 @@ namespace Farmasi.Basket.Data.Context
                 return;
             }
 
-            // Configure mongo (You can inject the config, just to simplify)
-            MongoClient = new MongoClient("mongodb+srv://furkan-emre-a:lUKVDTlJEcOFnE0K@basket.bz5unkj.mongodb.net/?retryWrites=true&w=majority");
+            MongoClient = new MongoClient(_connectionString);
 
             Database = MongoClient.GetDatabase("farmasi_basket");
         }
