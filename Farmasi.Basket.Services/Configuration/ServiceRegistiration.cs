@@ -5,6 +5,8 @@ using Farmasi.Basket.Services.CartModule.Abstraction;
 using Farmasi.Basket.Services.CartModule.Concrete;
 using Farmasi.Basket.Services.ProductModule.Abstraction;
 using Farmasi.Basket.Services.ProductModule.Concrete;
+using Farmasi.Basket.Services.Publisher.Abstraction;
+using Farmasi.Basket.Services.Publisher.Concrete;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -23,6 +25,7 @@ namespace Farmasi.Basket.Services.Configuration
             services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICartService, CartService>();
+            services.AddScoped<IPublisherService, PublisherService>();
         }
     }
 }

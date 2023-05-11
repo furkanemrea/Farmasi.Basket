@@ -1,5 +1,8 @@
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
+using Farmasi.Basket.Services.Publisher.Concrete.Models;
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -9,11 +12,6 @@ namespace Farmasi.Basket.Email.Sender;
 
 public class Function
 {
-    /// <summary>
-    /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
-    /// the AWS credentials will come from the IAM role associated with the function and the AWS region will be set to the
-    /// region the Lambda function is executed in.
-    /// </summary>
     public Function()
     {
 
@@ -21,7 +19,7 @@ public class Function
 
     public async Task FunctionHandler(SQSEvent evnt, ILambdaContext context)
     {
-        foreach(var message in evnt.Records)
+        foreach (var message in evnt.Records)
         {
             await ProcessMessageAsync(message, context);
         }
@@ -29,9 +27,27 @@ public class Function
 
     private async Task ProcessMessageAsync(SQSEvent.SQSMessage message, ILambdaContext context)
     {
+        try
+        {
+            var emailMessageModel = JsonConvert.DeserializeObject<EmailMessageModel>(message.Body);
+            if (emailMessageModel != null)
+            {
+                SendEmail(emailMessageModel.Email);
+                context.Logger.LogInformation($"Email Sent to {message.Body}");
+            }
+        }
+        catch (Exception ex)
+        {
+            context.Logger.LogInformation($"{ex.Message} ~~ {message.Body}");
+        }
+
+
         context.Logger.LogInformation($"Processed message {message.Body}");
-
-
         await Task.CompletedTask;
+    }
+
+    public void SendEmail(string email)
+    {
+        // to do : send email
     }
 }
