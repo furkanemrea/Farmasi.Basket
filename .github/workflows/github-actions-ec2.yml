@@ -59,6 +59,6 @@ jobs:
         region: ${{env.AWS_REGION}}
     - name: Deploy Completed Notification To Slack
       run: |
-        curl -X POST -H 'Content-type: application/json' --data '{"text":" Production environment updated "}' https://hooks.slack.com/services/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
+        curl -X POST -H 'Content-type: application/json' --data '{"text":" Production environment updated for farmasi "}' https://hooks.slack.com/services/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
  
   
