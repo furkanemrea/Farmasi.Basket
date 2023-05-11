@@ -13,8 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Farmasi.Basket.Core", "Farm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Farmasi.Basket.Data", "Farmasi.Basket.Data\Farmasi.Basket.Data.csproj", "{1B1E1C11-BDEC-464C-82BA-5815DC5EF168}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Farmasi.Basket.Lambda.Manager", "Farmasi.Basket.Lambda.Manager\Farmasi.Basket.Lambda.Manager.csproj", "{7DEF707A-B644-4E96-A6C7-306B44CAFC26}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Farmasi.Basket.Redis", "Farmasi.Basket.Redis\Farmasi.Basket.Redis.csproj", "{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}"
 EndProject
 Global
@@ -43,10 +41,6 @@ Global
 		{1B1E1C11-BDEC-464C-82BA-5815DC5EF168}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B1E1C11-BDEC-464C-82BA-5815DC5EF168}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B1E1C11-BDEC-464C-82BA-5815DC5EF168}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7DEF707A-B644-4E96-A6C7-306B44CAFC26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7DEF707A-B644-4E96-A6C7-306B44CAFC26}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7DEF707A-B644-4E96-A6C7-306B44CAFC26}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7DEF707A-B644-4E96-A6C7-306B44CAFC26}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A930C5A4-CC38-4414-AB74-6D7BCDC92DF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
