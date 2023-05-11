@@ -14,7 +14,7 @@ namespace Farmasi.Basket.Services.ProductModule.Models.Response
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public string CategoryNamee { get; set; }
+        public string CategoryName { get; set; }
         public decimal Price { get; set; }
     }
 }

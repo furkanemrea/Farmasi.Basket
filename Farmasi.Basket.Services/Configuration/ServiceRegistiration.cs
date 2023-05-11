@@ -3,6 +3,8 @@ using Farmasi.Basket.Data.Context;
 using Farmasi.Basket.Data.Repositories;
 using Farmasi.Basket.Services.CartModule.Abstraction;
 using Farmasi.Basket.Services.CartModule.Concrete;
+using Farmasi.Basket.Services.OrderModule.Abstraction;
+using Farmasi.Basket.Services.OrderModule.Concrete;
 using Farmasi.Basket.Services.ProductModule.Abstraction;
 using Farmasi.Basket.Services.ProductModule.Concrete;
 using Farmasi.Basket.Services.Publisher.Abstraction;
@@ -21,11 +23,17 @@ namespace Farmasi.Basket.Services.Configuration
         public static void RegisterServices(this IServiceCollection services)
         {
             services.AddScoped<IMongoContext, MongoContext>();
+
             services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<IProductService, ProductService>();
+
+            services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<ICartService, CartService>();
+
             services.AddScoped<IPublisherService, PublisherService>();
+
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderService, OrderService>();
         }
     }
 }

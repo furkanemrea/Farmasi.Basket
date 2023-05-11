@@ -24,7 +24,7 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
 
         private readonly CartServiceHelper _cartServiceHelper;
 
-        public CartService(ICartRepository cartRepository,IConfiguration configuration, IMapper mapper, IProductRepository productRepository)
+        public CartService(ICartRepository cartRepository, IConfiguration configuration, IMapper mapper, IProductRepository productRepository)
         {
             _cartRepository = cartRepository;
             _mapper = mapper;
@@ -35,6 +35,7 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
             ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(connectionString);
 
             _redisDb = redis.GetDatabase();
+
 
             _cartServiceHelper = new(_redisDb);
         }
@@ -61,6 +62,7 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
             {
                 _cartServiceHelper.CreateNewProductItem(product, hashKey);
             }
+
 
             return BaseResponse<AddToCartResponseModel>.Builder().SetSuccessCode().Build();
         }
@@ -94,15 +96,22 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
 
             string hashKey = Util.GetCartHashKey(requestModel.UserId.ToString());
 
-            removeProductFromCartValidator.ThrowIfUserHasNotCart(_redisDb,hashKey);
+            removeProductFromCartValidator.ThrowIfUserHasNotCart(_redisDb, hashKey);
 
             RedisValue serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
 
             List<ProductOfCartModel>? productOfCardList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
 
+            var currentProducts = productOfCardList.Where(x => x.ProductId != requestModel.ProductId.ToString()).ToList();
+
+            if(currentProducts == null || currentProducts.Count < 1)
+            {
+                await ClearBasket(requestModel.UserId.ToString());
+            }
+
             var hashFields = new HashEntry[]
             {
-                    new HashEntry(nameof(ProductOfCartModel), Newtonsoft.Json.JsonConvert.SerializeObject(productOfCardList))
+                    new HashEntry(nameof(ProductOfCartModel), Newtonsoft.Json.JsonConvert.SerializeObject(currentProducts))
             };
 
             _redisDb.HashSet(hashKey, hashFields);
@@ -133,90 +142,26 @@ namespace Farmasi.Basket.Services.CartModule.Concrete
 
             return BaseResponse<GetCartByUserResponseModel>.Builder().SetSuccessCode().Build();
         }
+
+        public async Task<BaseResponse<bool>> ClearBasket(string userId)
+        {
+            string hashKey = Util.GetCartHashKey(userId);
+
+            bool existingCart = await _redisDb.KeyExistsAsync(hashKey);
+
+            if (existingCart)
+            {
+                await _redisDb.KeyDeleteAsync(hashKey);
+            }
+
+            return BaseResponse<bool>.Builder().SetSuccessCode().Build();
+        }
+
+        public async Task<BaseResponse<string>> GetProductOfCartFromRedis(string userId)
+        {
+            var serializedObject = await _redisDb.HashGetAsync(Util.GetCartHashKey(userId), nameof(ProductOfCartModel));
+
+            return BaseResponse<string>.Builder().SetMessage(serializedObject).SetSuccessCode().Build();
+        }
     }
 }
-
-
-
-//var products = new List<ProductOfCartModel>();
-
-//var product = new ProductOfCartModel()
-//{
-//    Count = 1,
-//    Name = "Glass",
-//    CategoryName = "Category",
-//    Price = 55,
-//    ProductId = addToCartRequestMoel.ProductId.ToString(),
-//};
-
-//products.Add(product);
-//var newCart = new Data.Models.Cart()
-//{
-//    Products = products,
-//    UserId = Guid.NewGuid().ToString(),
-//};
-
-//await _cartRepository.Add(newCart);
-
-
-
-
-
-//if (userCard == null)
-//{
-//    await _cartRepository.Add(new Cart()
-//    {
-//        UserId = addToCartRequestMoel.UserId.ToString(),
-//        CreatedAt = DateTime.Now,
-//        Products = new List<ProductOfCartModel> {
-//            new ProductOfCartModel
-//            {
-//                 ProductId = selectedProduct.Id,
-//                 CategoryName = selectedProduct.CategoryName,
-//                 Count = 1,
-//                 Price = selectedProduct.Price,
-//                 Name = selectedProduct.Name,
-//            }
-//        }
-//    });
-//}
-//else
-//{
-//    if (userCard.Products != null)
-//    {
-
-//        var productAlreadyExist = userCard.Products.Where(x => x.ProductId == selectedProduct.Id).Any();
-
-//        if (productAlreadyExist)
-//        {
-//            userCard.Products.Where(x => x.ProductId == selectedProduct.Id).FirstOrDefault().Count++;
-//        }
-//        else
-//        {
-//            userCard.Products.Add(new ProductOfCartModel()
-//            {
-//                CategoryName = selectedProduct.CategoryName,
-//                Count = 1,
-//                Price = selectedProduct.Price,
-//                Name = selectedProduct.Name,
-//                ProductId = selectedProduct.Id
-//            });
-//        }
-//    }
-//    else
-//    {
-//        userCard.Products = new List<ProductOfCartModel>();
-
-//        userCard.Products.Add(new ProductOfCartModel()
-//        {
-//            CategoryName = selectedProduct.CategoryName,
-//            Count = 1,
-//            Price = selectedProduct.Price,
-//            Name = selectedProduct.Name,
-//            ProductId = selectedProduct.Id
-//        });
-//    }
-
-//    await _cartRepository.Update(userCard);
-
-//}

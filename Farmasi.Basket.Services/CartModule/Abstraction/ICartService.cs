@@ -15,7 +15,7 @@ namespace Farmasi.Basket.Services.CartModule.Abstraction
         Task<BaseResponse<UpdateItemCountOfProductResponsemodel>> UpdateItemCountOfProduct(UpdateItemCountOfProductRequestModel updateItemQuantityRequestModel);
         Task<BaseResponse<RemoveProductFromCartResponseModel>> RemoveProductFromCart(RemoveProductFromCartRequestModel requestModel);
         Task<BaseResponse<GetCartByUserResponseModel>> GetCartByUser(GetCartByUserRequestModel requestModel);
-
-
+        Task<BaseResponse<bool>> ClearBasket(string userId);
+        Task<BaseResponse<string>> GetProductOfCartFromRedis(string userId);
     }
 }

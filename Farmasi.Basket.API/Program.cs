@@ -1,5 +1,6 @@
 using Farmasi.Basket.Core.Application.Middleware;
 using Farmasi.Basket.Services.Configuration;
+using Farmasi.Basket.Services.OrderModule.Configurations;
 using Farmasi.Basket.Services.ProductModule.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(opt =>
 {
     opt.AddProfile<ProductMapperProfile>();
+    opt.AddProfile<OrderMapperProfile>();
 });
 
 

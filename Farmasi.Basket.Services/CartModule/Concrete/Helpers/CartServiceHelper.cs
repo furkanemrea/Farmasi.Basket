@@ -16,19 +16,29 @@ namespace Farmasi.Basket.Services.CartModule.Concrete.Helpers
             _redisDb = redisDb;
         }
 
-        public void IncreaseExistProductCountOnCart(Product product,string hashKey)
+        public void IncreaseExistProductCountOnCart(Product product, string hashKey)
         {
             var serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
 
             var productOfCardModel = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProductOfCartModel>>(serializedObject);
 
-            if (productOfCardModel != null)
+            if (productOfCardModel != null && productOfCardModel.Count > 0)
             {
                 var releatedProduct = productOfCardModel.Where(x => x.ProductId == product.Id).FirstOrDefault();
                 if (releatedProduct != null)
                 {
                     releatedProduct.Count++;
                 }
+            }
+            else
+            {
+                productOfCardModel.Add(new()
+                {
+                    CategoryName = product.CategoryName,
+                    Name = product.Name,
+                    Price = product.Price,
+                    ProductId = product.Id,
+                });
             }
 
             var hashFields = new HashEntry[]
@@ -39,7 +49,7 @@ namespace Farmasi.Basket.Services.CartModule.Concrete.Helpers
             _redisDb.HashSet(hashKey, hashFields);
         }
 
-        public void CreateNewProductItem(Product product,string hashKey)
+        public void CreateNewProductItem(Product product, string hashKey)
         {
             List<ProductOfCartModel> productsOfCart = new();
 
@@ -62,7 +72,7 @@ namespace Farmasi.Basket.Services.CartModule.Concrete.Helpers
             _redisDb.HashSet(hashKey, hashFields);
         }
 
-        public void UpdateProductCountOfCart(Product product, string hashKey,int count)
+        public void UpdateProductCountOfCart(Product product, string hashKey, int count)
         {
             var serializedObject = _redisDb.HashGet(hashKey, nameof(ProductOfCartModel));
 
