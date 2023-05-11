@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Farmasi.Basket.API.Controllers
 {
 
-    public class BasketController : BaseController
+    public class BasketController 
     {
         public BasketController()
         {

@@ -8,5 +8,6 @@ namespace Farmasi.Basket.Services.CartModule.Models.ResponseModels
 {
     public class RemoveProductFromCartResponseModel
     {
+
     }
 }
